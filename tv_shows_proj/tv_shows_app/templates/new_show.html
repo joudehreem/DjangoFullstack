@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <title>Create</title>
+</head>
+<body>
+  <div class="container-sm">
+    <h1>Add a New Show</h1>
+
+    {% if messages %}
+    <ul class="messages">    
+        {% for message in messages %}    
+            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>    
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form action="/shows/create" method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" value="{{form_data.title}}">
+      </div>
+      <div class="mb-3">
+        <label for="network" class="form-label">Network</label>
+        <input type="text" class="form-control" id="network" name="network" value="{{form_data.network}}">
+        <label for="date" class="form-label">Release Date</label>
+        <input type="date" class="form-control" id="release_dateate" name="release_date" value="{{form_data.release_dateate}}">
+      </div>
+      <div class="mb-3">
+        <label for="desc" class="form-label">Description</label>
+        <textarea class="form-control" id="desc" name="desc" rows="3">{{form_data.desc}}</textarea>
+        <!-- <input class="form-control" type="text" name="desc" id="desc"> -->
+      </div>
+      <button type="submit" class="btn btn btn-primary">Create</button>
+      <a href="/shows/"  class="btn btn btn-secondary">Go to Show</a>
+
+
+    </form>
+    
+  </div>
+</body>
+</html>
