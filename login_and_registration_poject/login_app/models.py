@@ -1,58 +1,77 @@
 from django.db import models
 import re
 import bcrypt
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
 # Create your models here.
 
 class UserManager(models.Manager):
-    def basic_validator(self, postData):
+    def basic_register(self, postData): # function for registration 
         errors = {}
-        # add keys and values to errors dictionary for each invalid field
-        if len(postData['first_name']) < 2:
-            errors["first_name"] = "First name should be at least 2 characters"
-        if len(postData['last_name']) < 2:
+        if len(postData['first_name']) < 2:# validated first name
+            errors["first_name"] = []## as list ""if satament
+            errors["first_name"].append=('')
+        if len(postData['last_name']) < 2:# validated last name
             errors["last_name"] = "Last Name should be at least 2 characters"
+        # validated dob to required in database and age grater than 13
+        dob = datetime.strptime(postData['dob'], "%Y-%m-%d").date()
+        today = datetime.now().date()
+        if not postData['dob']:
+            errors["dob"] = "Date of Birth is required"
+        else:
+            try:
+                dob = datetime.strptime(postData['dob'], "%Y-%m-%d").date()
+                if dob >= today:
+                    errors["dob"] = "The Date of Birth must be in the past"
+            except ValueError:
+                errors["dob"] = "Invalid date format. Please use YYYY-MM-DD."
+        #validated format of mail and unique email used
         EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
-        if not EMAIL_REGEX.match(postData['email']):    # test whether a field matches the pattern            
+        if not EMAIL_REGEX.match(postData['email']):             
             errors['email'] = "Invalid email address!"
-        # if len(postData['dob']) < 10:
-        #   errors["dob"] = "Blog description should be at least 10 characters"
-        if len(postData['password']) < 2:
-          errors["password"] = "Password should be at least 8 characters"
+        if User.objects.filter(email=postData['email']).exists():
+            errors['email'] = "Email already in use!"
+        # validated pass to be greater than 8 char and match with confirm pass 
+        if len(postData['password']) < 8:
+            errors["password"] = "Password should be at least 8 characters"
         if postData['password'] != postData['confirm_pw']:
-          errors["confirm_pw"] = "Passwords are not match "
+            errors["confirm_pw"] = "Passwords are not match "
         return errors
-    # def validate_login(request):
-    #   user = User.objects.get(email=request.POST['email'])  # hm...is it really a good idea to use the get method here?
-    #   if bcrypt.checkpw(request.POST['password'].encode(), user.pw_hash.encode()):
-    #       print("password match")
-    #   else:
-    #       print("failed password")
+    
+    def basic_login(self, postData):# function for login 
+            errors = {}
+            try:
+                user = User.objects.get(email=postData['email'])
+            except ObjectDoesNotExist:
+                errors['email'] = "Email not found."
+                return errors
+            if not bcrypt.checkpw(postData['password'].encode(), user.password.encode()):
+                errors['password'] = "Invalid password."
+            return errors
+
 
 class User(models.Model):
-  first_name = models.CharField(max_length=50)
-  last_name = models.CharField(max_length=50)
-  # dob = models.DateField()
-  email = models.CharField(max_length=225)
-  password = models.CharField(max_length=50)
-  confirm_pw=models.CharField(max_length=50)
-  created_at =models.DateTimeField(auto_now_add=True)
-  updated_at = models.DateTimeField(auto_now=True)
-  objects = UserManager()
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.CharField(max_length=225)
+    dob = models.DateField(default=datetime.today) #
+    password = models.CharField(max_length=50)
+    confirm_pw=models.CharField(max_length=50)
+    created_at =models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = UserManager()
 
+# create user 
+def create_user(session):
+    password = POST['password']
+    return User.objects.create(
+        first_name=session['first_name'],
+        last_name =session['last_name'],
+        email=session['email'],
+        dob=session['dob'],
+        password= bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(),
+        # confirm_pw=POST['password']
+        )
 
-def create_user(POST):
-  password = POST['password']
-  return User.objects.create(
-    first_name=POST['first_name'],
-    last_name =POST['last_name'],
-    email=POST['email'],
-    password= bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(),
-    # confirm_pw=POST['password']
-    )
-
-# def get_user(session):
-#   return User.objects.get(session['user_id'])
-
-def login(POST):
-  user_login = User.objects.filter(email=POST['email']) 
-  return user_login
+def get_user(session):
+    User.objects.get(id=session['user_id'])
