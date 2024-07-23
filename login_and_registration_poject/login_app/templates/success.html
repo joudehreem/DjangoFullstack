@@ -12,7 +12,7 @@
       <form action="/logout" method="post" class="d-grid gap-2 d-md-flex justify-content-md-end">
         {% csrf_token %}
         <input type="hidden" name="{{user.id}}">
-        <input type="submit" value="Logout" class="btn btn-danger">
+        <input type="submit" value="Logout" class="btn btn-danger my-3">
       </form>
 
       <h1>Success! Welcome {{user.first_name}}</h1>
