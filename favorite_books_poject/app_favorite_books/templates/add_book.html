@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Favorite Books</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  </head>
+  <body>
+
+    <div class="container ">
+      <div class="d-flex justify-content-between align-items-center my-2">
+        <h1>Welcome,{{user.first_name}}</h1>
+        <form action="/logout" method="post">
+          {% csrf_token %}
+            <input type="submit" value="Log Out" class="btn btn-sm btn-danger">
+        </form>
+        </div>
+      <hr>
+
+      <div class="row">
+        {% if messages %}
+        <ul class="messages list-group">    
+            {% for message in messages %}    
+                <li {% if message.tags %} class="{{ message.tags }} list-group-item list-group-item-danger m-1"{% endif %}>{{ message }}</li>    
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="col-lg-6">
+          <h2>Add Favorite Books</h2>
+          <form action="/add_book" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" id="title" name="title">
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="desc" name="desc" rows="3"></textarea>
+            </div>
+            <input type="submit" value="Add" class="btn btn btn-primary">
+          </form>
+        </div>
+        <div class="col ms-4 text-center">
+          <h2>All Books</h2>
+            {% for book in books reversed%}
+            <ul class="list-group ">
+              <li class="list-group-item"><a href="/books/{{book.id}}">{{book.title}}</a></li>
+              <li class="list-group-item">{{book.uploaded_by.first_name}} {{book.uploaded_by.last_name}}</li>
+              <li class="list-group-item my-2">  
+
+              {% if book in user.liked_books.all %}
+              <form action="/remove_favorite/{{ book.id }}" method="post">
+                {% csrf_token %}
+                <input class="btn btn-danger" type="submit" value="Unlike">
+            </form>              
+            {% else %}
+                  <form action="/add_favorite/{{ book.id }}" method="post">
+                      {% csrf_token %}
+                      <input class="btn btn-info" type="submit" value="Like">
+                  </form>
+              {% endif %}
+            
+            
+            </li>
+              </ul>
+            {% endfor %}
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+</html>
